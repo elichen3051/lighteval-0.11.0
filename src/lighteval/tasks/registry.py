@@ -250,9 +250,11 @@ class Registry:
 
         # Need to load multilingual tasks
         if self._load_multilingual:
-            import lighteval.tasks.multilingual.tasks as multilingual_tasks
-
-            custom_tasks_module.append(multilingual_tasks)
+            try:
+                import lighteval.tasks.multilingual.tasks as multilingual_tasks
+                custom_tasks_module.append(multilingual_tasks)
+            except:
+                logger.info("Try to load multilingual in _load_full_registry")
 
         # We load all
         for module in custom_tasks_module:
