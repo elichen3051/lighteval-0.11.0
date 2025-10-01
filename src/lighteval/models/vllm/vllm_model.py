@@ -454,8 +454,10 @@ class VLLMModel(LightevalModel):
                 if x is not None
             ]
         else:
+            from vllm.inputs.data import TokensPrompt
+            new_inputs = [TokensPrompt(prompt_token_ids=token_ids) for token_ids in inputs]
             outputs = self.model.generate(
-                prompt_token_ids=inputs,
+                prompts=new_inputs,
                 sampling_params=sampling_params,
                 use_tqdm=True,
             )
