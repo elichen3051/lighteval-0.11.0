@@ -30,6 +30,7 @@ from typing import Coroutine, Optional
 import torch
 from pydantic import NonNegativeFloat, NonNegativeInt, PositiveInt
 from tqdm import tqdm
+from vllm.inputs.data import TokensPrompt
 
 from lighteval.data import GenerativeTaskDataset, LoglikelihoodDataset
 from lighteval.models.abstract_model import LightevalModel, ModelConfig
@@ -417,6 +418,9 @@ class VLLMModel(LightevalModel):
         """Contains the actual logic of the generation."""
         sampling_params = SamplingParams(**self.config.generation_parameters.to_vllm_dict())
 
+        # wrap inputs with TokensPrompt to make compatible to VLLM >= 0.10.2
+        inputs = [TokensPrompt(prompt_token_ids=token_ids) for token_ids in inputs]
+
         if generate:
             sampling_params.n = num_samples
             sampling_params.max_tokens = max_new_tokens
@@ -454,10 +458,8 @@ class VLLMModel(LightevalModel):
                 if x is not None
             ]
         else:
-            from vllm.inputs.data import TokensPrompt
-            new_inputs = [TokensPrompt(prompt_token_ids=token_ids) for token_ids in inputs]
             outputs = self.model.generate(
-                prompts=new_inputs,
+                prompts=inputs,
                 sampling_params=sampling_params,
                 use_tqdm=True,
             )
